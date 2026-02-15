@@ -1,39 +1,48 @@
 <!DOCTYPE html>
-<html>
+<html lang="th">
 <head>
-    <title>ESP32 Flash By OOM</title>
-    <script src="https://unpkg.com/esptool-js@0.4.0/bundle.js"></script>
+    <meta charset="UTF-8">
+    <title>ESP32 Installer By OOM</title>
     <script src="https://cdn.jsdelivr.net/npm/esptool-js@0.4.0/bundle.js"></script>
 </head>
 <body style="background:#1a1a1a; color:white; text-align:center; font-family:sans-serif; padding:50px;">
-    <h1>🚀 ESP32 Web Installer</h1>
-    <p id="status" style="color:#00f2ff; font-size:20px;">🔴 รอการเชื่อมต่อ...</p>
-    <button id="btn" style="padding:15px 30px; font-size:18px; cursor:pointer; background:#00f2ff; border:none; border-radius:10px;">เชื่อมต่อบอร์ด</button>
+    <div style="border:2px solid #00f2ff; padding:30px; border-radius:20px; display:inline-block;">
+        <h1>🚀 ESP32 Web Installer</h1>
+        <p id="status" style="color:#00f2ff; font-size:20px;">🔵 กำลังโหลดตัวช่วย...</p>
+        <button id="btn" style="padding:15px 30px; font-size:18px; cursor:pointer; background:#555; color:white; border:none; border-radius:10px; font-weight:bold;" disabled>
+            รอสักครู่...
+        </button>
+    </div>
 
     <script>
-        document.getElementById('btn').onclick = async () => {
-            // เช็คตัวช่วยทุกชื่อที่เป็นไปได้
-            const lib = window.esptooljs || window.esptool;
-            
-            if (!lib) {
-                alert("ตัวช่วยยังไม่โหลดนาย! ลองปิด Chrome แล้วเปิดใหม่ หรือเปลี่ยนเน็ตดูครับ");
-                return;
-            }
+        // ฟังก์ชันเช็คตัวช่วยทุกลำดับ
+        window.onload = () => {
+            const check = setInterval(() => {
+                const lib = window.esptooljs || window.esptool;
+                if (lib) {
+                    clearInterval(check);
+                    document.getElementById('status').innerText = "✅ ตัวช่วยพร้อมแล้วนาย!";
+                    const btn = document.getElementById('btn');
+                    btn.disabled = false;
+                    btn.style.background = "#00f2ff";
+                    btn.style.color = "black";
+                    btn.innerText = "เชื่อมต่อบอร์ด";
+                }
+            }, 500);
+        };
 
+        document.getElementById('btn').onclick = async () => {
+            const lib = window.esptooljs || window.esptool;
             try {
                 const port = await navigator.serial.requestPort();
                 await port.open({ baudRate: 115200 });
-                
                 const transport = new lib.Transport(port);
                 const esploader = new lib.ESPLoader(transport, 115200);
-                
-                document.getElementById('status').innerText = "⏳ เชื่อมต่อแล้ว... (กดปุ่ม BOOT บนบอร์ดค้างไว้!)";
+                document.getElementById('status').innerText = "⏳ เชื่อมต่อแล้ว... (กดปุ่ม BOOT บนบอร์ด!)";
                 await esploader.main();
-                
-                document.getElementById('status').innerText = "✅ เชื่อมต่อสำเร็จ! หล่อเลยนาย";
-                document.getElementById('status').style.color = "#00ff00";
+                document.getElementById('status').innerText = "✅ เชื่อมต่อสำเร็จ!";
             } catch (e) {
-                alert("พลาดตรงนี้: " + e.message);
+                alert("ผิดพลาด: " + e.message);
             }
         };
     </script>
